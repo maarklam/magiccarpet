@@ -1,0 +1,69 @@
+<script src="blockly_compressed.js"></script>
+<script src="javascript_compressed.js"></script>  <!-- move under blockly_compressed.js if needed -->
+<script src="python_compressed.js"></script> <!-- move under blockly_compressed.js if needed -->
+<script src="blocks_compressed.js"></script>
+<script src="magic_carpet.js"></script>
+
+<script src="msg/js/en.js"></script>
+
+<div id="blocklyDiv" style="height: 800px; width: 1000px;"></div>
+
+<xml id="toolbox" style="display: none">
+	
+	<category name="Load" colour="#4F4E50">	
+		<block type="load_main" disabled="true">
+			<b><mutation load_input="true"></mutation></b>
+			<field name="PROPERTY"></field>
+		</block>
+	</category>
+	<category name="Visualize" colour="#003594">
+		<block type="text_print"></block>
+	</category>
+	<category name="Conditions/Loops" colour="#82BC00">
+		<block type="controls_if"></block>
+		<block type="controls_repeat_ext"></block>
+		<block type="logic_compare"></block>			  
+	</category>
+	<category name="Transform" colour="#6c207e">
+	</category>
+	<category name="Aggregate" colour="#e31b23">
+	</category>
+	<category name="Statistics" colour="#fcd015">
+	</category>
+	<category name="Solver" colour="#00a94f">
+	</category>
+	<category name="Values" colour="#27AFAF">
+		<block type="math_number"></block>
+		<block type="text"></block>
+	</category>
+	
+	<sep></sep>
+	 <category name="Variables" custom="VARIABLE" colour="#F8971D"></category>
+	 <!-- Blocks for Functions <category name="Functions" colour="290" custom="PROCEDURE"></category> -->
+</xml>
+
+<script>
+	var workspace = Blockly.inject('blocklyDiv',
+      {toolbox: document.getElementById('toolbox'),
+	  horizontalLayout:true});
+	 
+	function showCode() {
+		var code = Blockly.JavaScript.workspaceToCode(workspace);
+		alert(code)
+	}
+
+	function runCode() {
+		var code = Blockly.JavaScript.workspaceToCode(workspace);
+		try {
+			eval(code);
+		} 	catch (e) {
+			alert(e);
+		}
+	}	
+</script>
+
+<p>
+	<button onclick="showCode()">Show Code</button>
+	<button onclick="runCode()">Run Code (JS Only)</button>	
+</p>
+
