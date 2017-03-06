@@ -131,7 +131,7 @@ Blockly.Blocks['load_main'] = {
 Blockly.Blocks['visualize_main'] = {
   init: function() {
 	var PROPERTIES =
-	[["Columns","VIZ_COLS"], ["Head","VIZ_HEAD"], ["Tail","VIZ_TAIL"],["Summary","VIZ_SUMMARY"],["Scatter Plot","VIZ_SCATTER"],["Histogram","VIZ_HIST"],["Pie Chart","VIZ_PIE"],["Box and Whisker Plot","VIZ_BOX"]]; 
+	[["Rows","VIZ_INDEX"], ["Columns","VIZ_COLS"], ["Row & Column","VIZ_ROWCOL"], ["Head","VIZ_HEAD"], ["Tail","VIZ_TAIL"],["Summary","VIZ_SUMMARY"],["Scatter Plot","VIZ_SCATTER"],["Histogram","VIZ_HIST"],["Pie Chart","VIZ_PIE"],["Box and Whisker Plot","VIZ_BOX"]]; 
 	var dropdown = new Blockly.FieldDropdown(PROPERTIES, function(option) {
 	  var loadInput = option;
 	  this.sourceBlock_.updateShape_(loadInput);
@@ -162,7 +162,7 @@ Blockly.Blocks['visualize_main'] = {
   updateShape_: function(loadInput) {
     // Add or remove a Value Input.
     
-    if (loadInput=="VIZ_COLS" || loadInput=="VIZ_HEAD" || loadInput=="VIZ_TAIL" || loadInput=="VIZ_SUMMARY") {
+    if (loadInput=="VIZ_INDEX" || loadInput=="VIZ_COLS" || loadInput=="VIZ_HEAD" || loadInput=="VIZ_TAIL" || loadInput=="VIZ_SUMMARY") {
       this.removeInput('LOAD_STRING');
 	  this.removeInput('LOAD_COL');
 	  this.removeInput('LOAD_COL2');
@@ -170,6 +170,20 @@ Blockly.Blocks['visualize_main'] = {
 	  .setCheck(null)
 	  .appendField("From Data:");      
     }
+	else if (loadInput=="VIZ_ROWCOL") {
+		this.removeInput('LOAD_STRING');
+		this.removeInput('LOAD_COL');
+		this.removeInput('LOAD_COL2');
+		this.appendValueInput("LOAD_STRING")
+		.setCheck(null)
+		.appendField("From Data:");
+		this.appendValueInput("LOAD_COL")
+		.setCheck(null)
+		.appendField("Column:");
+		this.appendValueInput("LOAD_COL2")
+		.setCheck(null)
+		.appendField("Row:");
+	}	
 	else if (loadInput=="VIZ_SCATTER" || loadInput=="VIZ_BOX") {
 		this.removeInput('LOAD_STRING');
 		this.removeInput('LOAD_COL');
@@ -548,6 +562,10 @@ Blockly.Python['load_main'] = function(block) {
 	string_input = string_input.replace(/[']/g,""); //Remove quotes from string
 	var code = 'pd.read_csv("file:///' + string_input + '")\n';	
   }
+  else if (loadInput=="FROM_GP") {
+	string_input = string_input.replace(/[']/g,""); //Remove quotes from string
+	var code = 'ATP.get_data("aladdin.gp", url="' + string_input + '?")\n';
+  }
   else {
 	var code = 'var string="' + string_input + string2_input + string3_input + string4_input + string5_input + string6_input + string7_input + '";\n';
 	code += 'alert(string)';
@@ -571,10 +589,16 @@ Blockly.Python['visualize_main'] = function(block) {
 	else if(loadInput=="VIZ_COLS") {
 		var code = string_input + '.columns\n';
 	}
+	else if(loadInput=="VIZ_INDEX") {
+		var code = string_input + '.index\n';
+	}
+	else if(loadInput=="VIZ_ROWCOL") {
+		var code = 'print(' + string_input + '[[' + col_input + ']].loc[(' + col2_input + ')])\n';
+	}
 	else if(loadInput=="VIZ_SCATTER") {
 		var code = 'trace = go.Scatter(\n';
-		code += 'y = df["' + col_input + '"],\n';
-		code += 'x = df["' + col2_input + '"],\n';
+		code += 'y = ' + string_input '[' + col_input + '],\n';
+		code += 'x = ' + string_input '[' + col2_input + '],\n';
 		code += 'mode="markers"\n';
 		code += ')\n';
 		code += 'data = [trace]\n';
