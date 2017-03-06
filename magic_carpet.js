@@ -395,7 +395,7 @@ Blockly.Blocks['stats_variable'] = {
 Blockly.Blocks['stats_newvariable'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField("Variable");
+        .appendField("New Variable");
     this.setInputsInline(false);
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
@@ -532,17 +532,42 @@ Blockly.Blocks['stats_main'] = {
 };
 
 
-Blockly.JavaScript['load_main'] = function(block) {
-  var string_input = Blockly.JavaScript.valueToCode(block, 'LOAD_STRING', Blockly.JavaScript.ORDER_ATOMIC);
-  var string2_input = Blockly.JavaScript.valueToCode(block, 'LOAD_STRING2', Blockly.JavaScript.ORDER_ATOMIC);
-  var string3_input = Blockly.JavaScript.valueToCode(block, 'LOAD_STRING3', Blockly.JavaScript.ORDER_ATOMIC);
+Blockly.Python['load_main'] = function(block) {
+  var string_input = Blockly.Python.valueToCode(block, 'LOAD_STRING', Blockly.Python.ORDER_ATOMIC);
+  var string2_input = Blockly.Python.valueToCode(block, 'LOAD_STRING2', Blockly.Python.ORDER_ATOMIC);
+  var string3_input = Blockly.Python.valueToCode(block, 'LOAD_STRING3', Blockly.Python.ORDER_ATOMIC);
   var string4_input = block.getFieldValue('STRING4_DATE');
-  var string5_input = Blockly.JavaScript.valueToCode(block, 'LOAD_STRING5', Blockly.JavaScript.ORDER_ATOMIC);
-  var string6_input = Blockly.JavaScript.valueToCode(block, 'LOAD_STRING6', Blockly.JavaScript.ORDER_ATOMIC);
-  var string7_input = Blockly.JavaScript.valueToCode(block, 'LOAD_STRING7', Blockly.JavaScript.ORDER_ATOMIC);
+  var string5_input = Blockly.Python.valueToCode(block, 'LOAD_STRING5', Blockly.Python.ORDER_ATOMIC);
+  var string6_input = Blockly.Python.valueToCode(block, 'LOAD_STRING6', Blockly.Python.ORDER_ATOMIC);
+  var string7_input = Blockly.Python.valueToCode(block, 'LOAD_STRING7', Blockly.Python.ORDER_ATOMIC);
   
-  // TODO: Assemble JavaScript into code variable.
-  var code = 'var string="' + string_input + string2_input + string3_input + string4_input + string5_input + string6_input + string7_input + '";\n';
-  code += 'alert(string)';
-  return code;
+  var loadInput = this.getFieldValue('PROPERTY'); 
+  
+  // TODO: Assemble into code variable.
+  if (loadInput=="FROM_FILE") {	
+	string_input = string_input.replace(/[']/g,""); //Remove quotes from string
+	var code = 'pd.read_csv("file:///' + string_input + '")\n';	
+  }
+  else {
+	var code = 'var string="' + string_input + string2_input + string3_input + string4_input + string5_input + string6_input + string7_input + '";\n';
+	code += 'alert(string)';
+	}
+  return [code, Blockly.Python.ORDER_ATOMIC];
+};
+
+Blockly.Python['visualize_main'] = function(block) {
+	var string_input = Blockly.Python.valueToCode(block, 'LOAD_STRING', Blockly.Python.ORDER_ATOMIC);
+	var col_input = Blockly.Python.valueToCode(block, 'LOAD_COL', Blockly.Python.ORDER_ATOMIC);
+	var col2_input = Blockly.Python.valueToCode(block, 'LOAD_COL2', Blockly.Python.ORDER_ATOMIC);	
+	
+	var loadInput = this.getFieldValue('PROPERTY'); 
+	
+	if(loadInput=="VIZ_HEAD") {
+		var code = string_input + '.head()\n';
+	}
+	else
+	{
+		var code = 'print("Test")\n';
+	}
+	return [code, Blockly.Python.ORDER_ATOMIC];
 };

@@ -1,6 +1,6 @@
 <script src="blockly_compressed.js"></script>
-<script src="javascript_compressed.js"></script>  <!-- move under blockly_compressed.js if needed -->
 <script src="python_compressed.js"></script> <!-- move under blockly_compressed.js if needed -->
+<script src="javascript_compressed.js"></script>  <!-- move under blockly_compressed.js if needed -->
 <script src="blocks_compressed.js"></script>
 <script src="magic_carpet.js"></script>
 
@@ -23,6 +23,7 @@
 	<category name="Conditions/Loops" colour="#82BC00">
 		<block type="controls_if"></block>
 		<block type="controls_repeat_ext"></block>
+		<block type="controls_whileUntil"></block>
 		<block type="logic_compare"></block>			  
 	</category>
 	<category name="Transform" colour="#6c207e">
@@ -33,8 +34,6 @@
 	</category>
 	<category name="Statistics" colour="#fcd015">
 		<block type="stats_main"></block>
-	</category>
-	<category name="Solver" colour="#00a94f">
 	</category>
 	<category name="Values" colour="#27AFAF">
 		<block type="math_number"></block>
@@ -52,16 +51,32 @@
 	  horizontalLayout:true});
 	 
 	function showCode() {
-		var code = Blockly.JavaScript.workspaceToCode(workspace);
+		var code = Blockly.Python.workspaceToCode(workspace);
 		alert(code)
 	}
 
 	function runCode() {
-		var code = Blockly.JavaScript.workspaceToCode(workspace);
+		var code = Blockly.Python.workspaceToCode(workspace);
 		try {
 			eval(code);
 		} 	catch (e) {
 			alert(e);
+		}
+	}
+
+	function saveWorkspace() {
+		var xmlDom = Blockly.Xml.workspaceToDom(Blockly.mainWorkspace);
+		var xmlText = Blockly.Xml.domToPrettyText(xmlDom);
+		
+		localStorage.setItem("blockly.xml", xmlText);
+	}
+
+	function loadWorkspace() {
+		var xmlText = localStorage.getItem("blockly.xml");
+		if (xmlText) {
+			Blockly.mainWorkspace.clear();
+			xmlDom = Blockly.Xml.textToDom(xmlText);
+			Blockly.Xml.domToWorkspace(Blockly.mainWorkspace, xmlDom);
 		}
 	}	
 </script>
@@ -69,5 +84,8 @@
 <p>
 	<button onclick="showCode()">Show Code</button>
 	<button onclick="runCode()">Run Code (JS Only)</button>	
+	<br><br>
+	<button onclick="saveWorkspace()">Save Workspace</button>
+	<button onclick="loadWorkspace()">Load Workspace</button>
 </p>
 
