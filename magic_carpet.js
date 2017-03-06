@@ -565,6 +565,21 @@ Blockly.Python['visualize_main'] = function(block) {
 	if(loadInput=="VIZ_HEAD") {
 		var code = string_input + '.head()\n';
 	}
+	else if(loadInput=="VIZ_SUMMARY") {
+		var code = string_input + '.describe()\n';
+	}
+	else if(loadInput=="VIZ_COLS") {
+		var code = string_input + '.columns\n';
+	}
+	else if(loadInput=="VIZ_SCATTER") {
+		var code = 'trace = go.Scatter(\n';
+		code += 'y = df["' + col_input + '"],\n';
+		code += 'x = df["' + col2_input + '"],\n';
+		code += 'mode="markers"\n';
+		code += ')\n';
+		code += 'data = [trace]\n';
+		code += 'plotly.offline.iplot(data, filename="scatter")\n';
+	}
 	else
 	{
 		var code = 'print("Test")\n';
