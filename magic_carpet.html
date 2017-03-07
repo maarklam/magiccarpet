@@ -6,7 +6,10 @@
 
 <script src="msg/js/en.js"></script>
 
-<div id="blocklyDiv" style="height: 800px; width: 1000px;"></div>
+<div style="width: 100%; overflow: hidden;">
+    <div id="blocklyDiv" style="width: 800px; height: 800px; float: left;"> </div>
+    <div id ="code" style="margin-left: 820px;"> </div>
+</div>
 
 <xml id="toolbox" style="display: none">
 	
@@ -21,8 +24,7 @@
 		<block type="text_print"></block>
 	</category>
 	<category name="Conditions/Loops" colour="#82BC00">
-		<block type="controls_if"></block>
-		<block type="controls_repeat_ext"></block>
+		<block type="controls_if"></block>		
 		<block type="controls_whileUntil"></block>
 		<block type="logic_compare"></block>			  
 	</category>
@@ -52,7 +54,8 @@
 	 
 	function showCode() {
 		var code = Blockly.Python.workspaceToCode(workspace);
-		alert(code)
+		
+		document.getElementById("code").innerText = code;
 	}
 
 	function runCode() {

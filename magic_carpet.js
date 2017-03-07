@@ -111,10 +111,13 @@ Blockly.Blocks['load_main'] = {
 	  this.removeInput('LOAD_STRING7');	  
 	  this.appendValueInput("LOAD_STRING")
 	  .setCheck(null)
-	  .appendField("Security Identifiers:");
+	  .appendField("Security Identifier:");
+	  this.appendValueInput("LOAD_STRING2")
+	  .setCheck(null)
+	  .appendField("Metric(s):");	  
 	  this.appendDummyInput("LOAD_STRING4")
 	  .appendField("Date:")
-	  .appendField(new Blockly.FieldDate(), 'STRING4_DATE');	      
+	  .appendField(new Blockly.FieldDate(), 'STRING4_DATE');	  
 	}
 	else {
 	  this.removeInput('LOAD_STRING');
@@ -566,9 +569,15 @@ Blockly.Python['load_main'] = function(block) {
 	string_input = string_input.replace(/[']/g,""); //Remove quotes from string
 	var code = 'ATP.get_data("aladdin.gp", url="' + string_input + '?")\n';
   }
+  else if (loadInput=="FROM_ANSER") {
+	var code = 'ATP.get_data("aladdin.anser", **{"pricer": {"asset_id": ' + string_input + '}, "metrics": [' + string2_input + ']})\n';	
+  }
+  else if (loadInput=="FROM_PRT") {
+	string4_input = "'" + string4_input + "'";
+	var code = 'ATP.get_data("aladdin.riskfactors", **{"port":' + string_input + ', "rpt": ' + string2_input + ', "rpt_format": ' + string3_input + ', "date": ' + string4_input + ', "days": ' + string5_input + ', "schema": ' + string6_input + ', "rpt_data_col_name_key": ' + string7_input + '})\n';
+  }
   else {
-	var code = 'var string="' + string_input + string2_input + string3_input + string4_input + string5_input + string6_input + string7_input + '";\n';
-	code += 'alert(string)';
+	var code = 'print("Test")\n';	
 	}
   return [code, Blockly.Python.ORDER_ATOMIC];
 };
@@ -597,8 +606,8 @@ Blockly.Python['visualize_main'] = function(block) {
 	}
 	else if(loadInput=="VIZ_SCATTER") {
 		var code = 'trace = go.Scatter(\n';
-		code += 'y = ' + string_input '[' + col_input + '],\n';
-		code += 'x = ' + string_input '[' + col2_input + '],\n';
+		code += 'y = ' + string_input + '[' + col_input + '],\n';
+		code += 'x = ' + string_input + '[' + col2_input + '],\n';
 		code += 'mode="markers"\n';
 		code += ')\n';
 		code += 'data = [trace]\n';
