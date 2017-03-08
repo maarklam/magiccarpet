@@ -397,7 +397,7 @@ Blockly.Blocks['aggregate_main'] = {
   }
 };
 
-Blockly.Blocks['stats_variable'] = {
+Blockly.Blocks['fit_variable'] = {
   init: function() {
     this.appendDummyInput()
         .appendField("Variable");
@@ -409,7 +409,7 @@ Blockly.Blocks['stats_variable'] = {
   }
 };
 
-Blockly.Blocks['stats_newvariable'] = {
+Blockly.Blocks['fit_newvariable'] = {
   init: function() {
     this.appendDummyInput()
         .appendField("New Variable");
@@ -422,13 +422,16 @@ Blockly.Blocks['stats_newvariable'] = {
   }
 };
 
-Blockly.Blocks['stats_main'] = {
+Blockly.Blocks['fit_main'] = {
   init: function() {
 	this.appendDummyInput()
-		.appendField(new Blockly.FieldDropdown([["Regression","STATS_REGRESSION"], ["Random Forest","STATS_FOREST"]]), "STAT_TYPE");
+		.appendField(new Blockly.FieldDropdown([["Regression","FIT_REGRESSION"], ["Random Forest","FIT_FOREST"]]), "FIT_TYPE");
 	this.appendValueInput("LOAD_STRING")
 	  .setCheck(null)
 	  .appendField("Using Data:");
+	this.appendValueInput("LOAD_RATIO")
+	  .setCheck(null)
+	  .appendField("Training Using Ratio:");
 	this.appendDummyInput('LOAD_DUMMY')
 	  .appendField("");
 	this.appendValueInput("LOAD_DEPVAR")
@@ -444,7 +447,7 @@ Blockly.Blocks['stats_main'] = {
     this.setColour('#fcd015');
     this.setTooltip('');
     this.setHelpUrl('');
-	this.setMutator(new Blockly.Mutator(['stats_newvariable']));
+	this.setMutator(new Blockly.Mutator(['fit_newvariable']));
 	this.elseifCount_ = 0;
   },
   
@@ -465,11 +468,11 @@ Blockly.Blocks['stats_main'] = {
   },
   
     decompose: function(workspace) {
-    var containerBlock = workspace.newBlock('stats_variable');
+    var containerBlock = workspace.newBlock('fit_variable');
     containerBlock.initSvg();
     var connection = containerBlock.nextConnection;
     for (var i = 1; i <= this.elseifCount_; i++) {
-      var elseifBlock = workspace.newBlock('stats_newvariable');
+      var elseifBlock = workspace.newBlock('fit_newvariable');
       elseifBlock.initSvg();
       connection.connect(elseifBlock.previousConnection);
       connection = elseifBlock.nextConnection;
@@ -486,7 +489,7 @@ Blockly.Blocks['stats_main'] = {
     var elseStatementConnection = null;
     while (clauseBlock) {
       switch (clauseBlock.type) {
-        case 'stats_newvariable':
+        case 'fit_newvariable':
           this.elseifCount_++;
           valueConnections.push(clauseBlock.valueConnection_);
           statementConnections.push(clauseBlock.statementConnection_);
@@ -510,7 +513,7 @@ Blockly.Blocks['stats_main'] = {
     var i = 1;
     while (clauseBlock) {
       switch (clauseBlock.type) {
-        case 'stats_newvariable':
+        case 'fit_newvariable':
           var inputIf = this.getInput('IF' + i);
           clauseBlock.valueConnection_ =
               inputIf && inputIf.connection.targetConnection;
@@ -615,6 +618,98 @@ Blockly.Python['visualize_main'] = function(block) {
 	}
 	else
 	{
+		var code = 'print("Test")\n';
+	}
+	return [code, Blockly.Python.ORDER_ATOMIC];
+};
+
+Blockly.Python['fit_main'] = function(block) {
+	var loadInput = this.getFieldValue('FIT_TYPE');
+	var string_input = Blockly.Python.valueToCode(block, 'LOAD_STRING', Blockly.Python.ORDER_ATOMIC);
+	var dep_input = Blockly.Python.valueToCode(block, 'LOAD_DEPVAR', Blockly.Python.ORDER_ATOMIC);
+	var ratio_input = Blockly.Python.valueToCode(block, 'LOAD_RATIO', Blockly.Python.ORDER_ATOMIC);	
+	var indep_input = Blockly.Python.valueToCode(block, 'LOAD_INDEPVAR', Blockly.Python.ORDER_ATOMIC);
+
+	dep_input = dep_input.replace(/[']/g,""); //Remove quotes from string	
+	indep_input = indep_input.replace(/[']/g,""); //Remove quotes from string	
+	
+	if(loadInput=="FIT_REGRESSION"){
+		var code = 'mld = MLData()\n';
+		code += 'mlm = MLModel()\n';
+		code += 'mld.data=' + string_input + '\n';
+		code += 'features = ["' + indep_input + '"]\n';
+		code += 'mld.create_dummy_data(features)\n';
+		code += 'X_train, y_train, X_test, y_test = mlm.split_random(mld.dummies, mld.data["' + dep_input + '"],train_ratio=' + ratio_input + ' )\n';
+		code += 'mlm.define_regressor(reg_name="ols")\n';
+		code += 'mlm.fit_model(X_train, y_train, indep_cols=features)\n';
+		code += '\n';
+		code += 'print("R-Squared On Training Set")\n';
+		code += 'pred_train = mlm.predict(X_train)\n';
+		code += 'scores = mlm.eval_model(y_train, pred_train, metric="r2")\n';
+		code += 'print(scores.round(4))\n';
+		code += 'print("R-Squared On Testing Set")\n';
+		code += 'pred_test = mlm.predict(X_test)\n';
+		code += 'scores = mlm.eval_model(y_test, pred_test, metric="r2")\n';
+		code += 'print(scores.round(4))\n';
+		code += 'print("Model Estimated")\n';
+		code += 'coef = pd.DataFrame({"Indep_Var": mlm.dummy_indep_cols, "Coef": mlm.model.coef_})\n';
+		code += 'print(coef)\n';
+		code += '#This section for chart\n';
+		code += 'predictions = pd.concat([pred_test, y_test, mld.data.ix[y_test.index, mlm.indep_cols]], axis=1)\n';
+		code += 'trace1=go.Scatter(\n';
+		code += 'y=predictions["Predicted ' + dep_input + '"],\n';
+		code += 'x=predictions["' + indep_input + '"],\n';
+		code += 'mode="markers",\n';
+		code += 'marker = dict(color="rgba(255, 0, 0, .8)")\n';
+		code += ')\n';
+		code += 'trace2=go.Scatter(\n';
+		code += 'y=predictions["' + dep_input + '"],\n';
+		code += 'x=predictions["' + indep_input + '"],\n';
+		code += 'mode="markers",\n';
+		code += 'marker = dict(color="rgba(0, 0, 0, .8)")\n';
+		code += ')\n';
+		code += 'data=[trace1,trace2]\n';
+		code += 'plotly.offline.iplot(data, filename="styled-scatter")\n';
+	}
+	else if (loadInput=="FIT_FOREST"){
+		var code = 'mld = MLData()\n';
+		code += 'mlm = MLModel()\n';
+		code += 'mld.data=' + string_input + '\n';
+		code += 'features = ["' + indep_input + '"]\n';
+		code += 'mld.create_dummy_data(features)\n';
+		code += 'X_train, y_train, X_test, y_test = mlm.split_random(mld.dummies, mld.data["' + dep_input + '"],train_ratio=' + ratio_input + ' )\n';
+		code += 'mlm.define_regressor(reg_name="rf")\n';
+		code += 'mlm.fit_model(X_train, y_train, indep_cols=features)\n';
+		code += '\n';
+		code += 'print("R-Squared On Training Set")\n';
+		code += 'pred_train = mlm.predict(X_train)\n';
+		code += 'scores = mlm.eval_model(y_train, pred_train, metric="r2")\n';
+		code += 'print(scores.round(4))\n';
+		code += 'print("R-Squared On Testing Set")\n';
+		code += 'pred_test = mlm.predict(X_test)\n';
+		code += 'scores = mlm.eval_model(y_test, pred_test, metric="r2")\n';
+		code += 'print(scores.round(4))\n';
+		code += 'print("Model Estimated")\n';
+		code += 'fi = mlm.check_feature_importance(group=True).round(4)\n';
+		code += 'print(fi)\n';
+		code += '#This section for chart\n';
+		code += 'predictions = pd.concat([pred_test, y_test, mld.data.ix[y_test.index, mlm.indep_cols]], axis=1)\n';
+		code += 'trace1=go.Scatter(\n';
+		code += 'y=predictions["Predicted ' + dep_input + '"],\n';
+		code += 'x=predictions["' + indep_input + '"],\n';
+		code += 'mode="markers",\n';
+		code += 'marker = dict(color="rgba(255, 0, 0, .8)")\n';
+		code += ')\n';
+		code += 'trace2=go.Scatter(\n';
+		code += 'y=predictions["' + dep_input + '"],\n';
+		code += 'x=predictions["' + indep_input + '"],\n';
+		code += 'mode="markers",\n';
+		code += 'marker = dict(color="rgba(0, 0, 0, .8)")\n';
+		code += ')\n';
+		code += 'data=[trace1,trace2]\n';
+		code += 'plotly.offline.iplot(data, filename="styled-scatter")\n';
+	}
+	else {
 		var code = 'print("Test")\n';
 	}
 	return [code, Blockly.Python.ORDER_ATOMIC];
