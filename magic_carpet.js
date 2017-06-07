@@ -600,16 +600,9 @@ Blockly.Python['load_main'] = function(block) {
   
   var loadInput = this.getFieldValue('PROPERTY'); 
   var timeseries_input = this.getFieldValue('TIMESERIES');
-  
-  string_input = string_input.replace(/[']/g,""); //Remove quotes from string
-  string2_input = string2_input.replace(/[']/g,""); //Remove quotes from string
-  string3_input = string3_input.replace(/[']/g,""); //Remove quotes from string
-  string5_input = string5_input.replace(/[']/g,""); //Remove quotes from string
-  string6_input = string6_input.replace(/[']/g,""); //Remove quotes from string
-  string7_input = string7_input.replace(/[']/g,""); //Remove quotes from string  
-    
+       
   // TODO: Assemble into code variable.
-  if (loadInput=="FROM_FILE") {
+  if (loadInput=="FROM_FILE") {	
 	string_input = string_input.replace(/["]/g,""); //Remove double quotes from string. This is an abnormal use case where a string needs to be passed in without quotes, due to the "file:///" syntax required.
 	if (timeseries_input=="TIMESERIES_NO") {
 	var code = 'pd.read_csv("file:///' + string_input + '")\n';	
@@ -640,10 +633,6 @@ Blockly.Python['visualize_main'] = function(block) {
 	var col2_input = Blockly.Python.valueToCode(block, 'LOAD_COL2', Blockly.Python.ORDER_ATOMIC);	
 	
 	var loadInput = this.getFieldValue('PROPERTY');
-
-	string_input = string_input.replace(/[']/g,""); //Remove quotes from string
-	col_input = col_input.replace(/[']/g,""); //Remove quotes from string
-	col2_input = col2_input.replace(/[']/g,""); //Remove quotes from string
 			
 	if(loadInput=="VIZ_HEAD") {
 		var code = string_input + '.head()\n';
@@ -682,11 +671,7 @@ Blockly.Python['transform_main'] = function(block) {
 	var condition_input = Blockly.Python.valueToCode(block, 'LOAD_CONDITION', Blockly.Python.ORDER_ATOMIC);	
 	
 	var loadInput = this.getFieldValue('PROPERTY'); 
-	
-	string_input = string_input.replace(/[']/g,""); //Remove quotes from string
-	col_input = col_input.replace(/[']/g,""); //Remove quotes from string
-	condition_input = condition_input.replace(/[']/g,""); //Remove quotes from string
-	
+		
 	if(loadInput=="TRANSFORM_CONCAT") {
 		//Assume concatenation by index. Can be enhanced to take in a column name if required
 		var code = 'pd.merge(' + string_input + ',' + col_input + ', how="inner", left_on=None, right_on=None, left_index=True, right_index=True, sort=True, suffixes=("_x", "_y"), copy=True, indicator=False)\n';
@@ -709,17 +694,14 @@ Blockly.Python['fit_main'] = function(block) {
 	var dep_input = Blockly.Python.valueToCode(block, 'LOAD_DEPVAR', Blockly.Python.ORDER_ATOMIC);
 	var ratio_input = Blockly.Python.valueToCode(block, 'LOAD_RATIO', Blockly.Python.ORDER_ATOMIC);	
 	var indep_input = Blockly.Python.valueToCode(block, 'LOAD_INDEPVAR', Blockly.Python.ORDER_ATOMIC);
-
-	dep_input = dep_input.replace(/[']/g,""); //Remove quotes from string	
-	indep_input = indep_input.replace(/[']/g,""); //Remove quotes from string	
 	
 	if(loadInput=="FIT_REGRESSION"){
-		var code = 'mld = MLData()\n'; //Rewrite simple regression code. Need flexible reference to columns/rows in dataframes.
+		var code = 'mld = MLData()\n';
 		code += 'mlm = MLModel()\n';
 		code += 'mld.data=' + string_input + '\n';		
-		code += 'features = ["' + indep_input + '"]\n';
+		code += 'features = [' + indep_input + ']\n';
 		code += 'mld.create_dummy_data(features)\n';
-		code += 'X_train, y_train, X_test, y_test = mlm.split_random(mld.dummies, mld.data["' + dep_input + '"],train_ratio=1)\n';
+		code += 'X_train, y_train, X_test, y_test = mlm.split_random(mld.dummies, mld.data[' + dep_input + '],train_ratio=1)\n';
 		code += 'mlm.define_regressor(reg_name="ols")\n';
 		code += 'mlm.fit_model(X_train, y_train, indep_cols=features)\n';
 		code += '\n';
